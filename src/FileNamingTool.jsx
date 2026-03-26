@@ -18,7 +18,10 @@ const SESSION_ROW = "#2a2a2a";
 const DANGER = "#e53e3e";
 
 const SHEET_URL =
-  "https://script.google.com/a/macros/themindcompany.com/s/AKfycbyQ_JhrjfVTAljq_d51FFDh7m0n0zk4oZUibt01dQ0hhHWB1HIQuAnAvtlsgdTaqr0N/exec";
+  "https://script.google.com/macros/s/AKfycbxU_HUxqB7WDlHkNpKthaYJcO4fB7E5GZ0dV-7dQKijhmhRdSxGjMnz_6a9KCP_xcAs/exec";
+
+const SHEET_VIEW_URL =
+  "https://docs.google.com/spreadsheets/d/1eHnNANtCIoLm160NJXH5_Niy3xe3hcDVOsbgvXtzj1I/edit";
 
 export default function FileNamingTool() {
   const [ticketNum, setTicketNum] = useState("");
@@ -60,9 +63,9 @@ export default function FileNamingTool() {
     if (!ticketNum || !freeform || !goLiveDate) return [];
     if (assetType === "V") {
       return [
-        { name: buildName("4x5", "NA"), label: "4x5 — Meta", size: "4x5", platform: "NA" },
-        { name: buildName("9x16", "NA"), label: "9x16 — Meta", size: "9x16", platform: "NA" },
-        { name: buildName("9x16", "AL"), label: "9x16 — AppLovin", size: "9x16", platform: "AL" },
+        { name: buildName("4x5", "NA"), label: "4x5 — Meta", size: "4x5", plat: "NA" },
+        { name: buildName("9x16", "NA"), label: "9x16 — Meta", size: "9x16", plat: "NA" },
+        { name: buildName("9x16", "AL"), label: "9x16 — AppLovin", size: "9x16", plat: "AL" },
       ];
     }
     return [
@@ -70,7 +73,7 @@ export default function FileNamingTool() {
         name: buildName(fileSize, platform),
         label: `${fileSize} — ${PLATFORMS.find((p) => p.value === platform)?.label}`,
         size: fileSize,
-        platform: platform,
+        plat: platform,
       },
     ];
   };
@@ -92,7 +95,7 @@ export default function FileNamingTool() {
         description: desc,
         size: e.size,
         date: date,
-        platform: e.platform,
+        platform: e.plat,
       }));
 
       await fetch(SHEET_URL, {
@@ -112,12 +115,12 @@ export default function FileNamingTool() {
 
   const addToSession = () => {
     if (!allFilled) return;
-    const entries = preview.map((n) => ({
+    const currentEntries = preview.map((n) => ({
       ...n,
       id: Date.now() + Math.random(),
     }));
-    setSessionList((prev) => [...entries, ...prev]);
-    sendToSheet(entries);
+    sendToSheet(currentEntries);
+    setSessionList((prev) => [...currentEntries, ...prev]);
     setFreeform("");
     setAssetType("S");
     setFileSize("1x1");
@@ -184,7 +187,7 @@ export default function FileNamingTool() {
     padding: "8px 20px",
     fontSize: 13,
     fontWeight: 600,
-    border: `1.5px solid rgba(255,255,255,0.25)`,
+    border: "1.5px solid rgba(255,255,255,0.25)",
     borderRadius: 50,
     cursor: "pointer",
     background: "transparent",
@@ -371,7 +374,7 @@ export default function FileNamingTool() {
             <div
               style={{
                 background: "rgba(41,182,246,0.08)",
-                border: `1px solid rgba(41,182,246,0.2)`,
+                border: "1px solid rgba(41,182,246,0.2)",
                 borderRadius: 16,
                 padding: "12px 18px",
                 marginBottom: 16,
@@ -426,7 +429,6 @@ export default function FileNamingTool() {
             </div>
           )}
 
-          {/* Add Button */}
           <button
             onClick={addToSession}
             disabled={!allFilled}
@@ -449,7 +451,6 @@ export default function FileNamingTool() {
             + Add to Session List
           </button>
 
-          {/* Sheet status toast */}
           {sheetStatus && (
             <div
               style={{
@@ -474,7 +475,6 @@ export default function FileNamingTool() {
           )}
         </div>
 
-        {/* Divider */}
         <div
           style={{
             borderTop: "1px solid rgba(255,255,255,0.1)",
@@ -491,13 +491,15 @@ export default function FileNamingTool() {
                 justifyContent: "space-between",
                 alignItems: "center",
                 marginBottom: 16,
+                flexWrap: "wrap",
+                gap: 8,
               }}
             >
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
                 Session List ({sessionList.length} file
                 {sessionList.length !== 1 ? "s" : ""})
               </h2>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <a
                   href={SHEET_VIEW_URL}
                   target="_blank"
@@ -506,7 +508,7 @@ export default function FileNamingTool() {
                     ...pillBtn,
                     background: "rgba(255,255,255,0.08)",
                     textDecoration: "none",
-                    display: "flex",
+                    display: "inline-flex",
                     alignItems: "center",
                     gap: 4,
                   }}
@@ -532,9 +534,7 @@ export default function FileNamingTool() {
               </div>
             </div>
 
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: 8 }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {sessionList.map((item) => (
                 <div
                   key={item.id}
