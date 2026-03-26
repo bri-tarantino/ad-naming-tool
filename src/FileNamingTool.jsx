@@ -17,6 +17,8 @@ const TEXT_DIM = "#666";
 const SESSION_ROW = "#2a2a2a";
 const DANGER = "#e53e3e";
 
+const SHEET_URL =
+  "https://script.google.com/macros/s/AKfycbxU_HUxqB7WDlHkNpKthaYJcO4fB7E5GZ0dV-7dQKijhmhRdSxGjMnz_6a9KCP_xcAs/exec";
 export default function FileNamingTool() {
   const [ticketNum, setTicketNum] = useState("");
   const [assetType, setAssetType] = useState("S");
@@ -27,6 +29,7 @@ export default function FileNamingTool() {
   const [copied, setCopied] = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [sessionList, setSessionList] = useState([]);
+  const [sheetStatus, setSheetStatus] = useState(null);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return "";
@@ -56,21 +59,55 @@ export default function FileNamingTool() {
     if (!ticketNum || !freeform || !goLiveDate) return [];
     if (assetType === "V") {
       return [
-        { name: buildName("4x5", "NA"), label: "4x5 — Meta" },
-        { name: buildName("9x16", "NA"), label: "9x16 — Meta" },
-        { name: buildName("9x16", "AL"), label: "9x16 — AppLovin" },
+        { name: buildName("4x5", "NA"), label: "4x5 — Meta", size: "4x5", platform: "NA" },
+        { name: buildName("9x16", "NA"), label: "9x16 — Meta", size: "9x16", platform: "NA" },
+        { name: buildName("9x16", "AL"), label: "9x16 — AppLovin", size: "9x16", platform: "AL" },
       ];
     }
     return [
       {
         name: buildName(fileSize, platform),
         label: `${fileSize} — ${PLATFORMS.find((p) => p.value === platform)?.label}`,
+        size: fileSize,
+        platform: platform,
       },
     ];
   };
 
   const preview = getPreview();
   const allFilled = ticketNum && freeform && goLiveDate;
+
+  const sendToSheet = async (entries) => {
+    try {
+      const ticket = `E${ticketNum.replace(/^E/i, "")}`;
+      const type = assetType === "S" ? "Static" : "Video";
+      const desc = sanitize(freeform);
+      const date = formatDate(goLiveDate);
+
+      const rows = entries.map((e) => ({
+        fileName: e.name,
+        ticket: ticket,
+        assetType: type,
+        description: desc,
+        size: e.size,
+        date: date,
+        platform: e.platform,
+      }));
+
+      await fetch(SHEET_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rows),
+      });
+
+      setSheetStatus("success");
+      setTimeout(() => setSheetStatus(null), 2500);
+    } catch (err) {
+      setSheetStatus("error");
+      setTimeout(() => setSheetStatus(null), 3000);
+    }
+  };
 
   const addToSession = () => {
     if (!allFilled) return;
@@ -79,6 +116,7 @@ export default function FileNamingTool() {
       id: Date.now() + Math.random(),
     }));
     setSessionList((prev) => [...entries, ...prev]);
+    sendToSheet(entries);
     setFreeform("");
     setAssetType("S");
     setFileSize("1x1");
@@ -159,7 +197,8 @@ export default function FileNamingTool() {
         background: BG,
         minHeight: "100vh",
         color: TEXT,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily:
+          "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
         padding: "32px 16px",
       }}
     >
@@ -193,7 +232,6 @@ export default function FileNamingTool() {
               marginBottom: 16,
             }}
           >
-            {/* Ticket */}
             <div>
               <label style={label}>Ticket #</label>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -214,7 +252,6 @@ export default function FileNamingTool() {
               </div>
             </div>
 
-            {/* Asset Type */}
             <div>
               <label style={label}>Asset Type</label>
               <div style={{ display: "flex", gap: 8 }}>
@@ -250,7 +287,6 @@ export default function FileNamingTool() {
             </div>
           </div>
 
-          {/* Freeform */}
           <div style={{ marginBottom: 16 }}>
             <label style={label}>Freeform Description</label>
             <input
@@ -274,7 +310,6 @@ export default function FileNamingTool() {
             )}
           </div>
 
-          {/* Date / Size / Platform */}
           <div
             style={{
               display: "grid",
@@ -348,7 +383,6 @@ export default function FileNamingTool() {
             </div>
           )}
 
-          {/* Preview */}
           {allFilled && (
             <div
               style={{
@@ -413,6 +447,30 @@ export default function FileNamingTool() {
           >
             + Add to Session List
           </button>
+
+          {/* Sheet status toast */}
+          {sheetStatus && (
+            <div
+              style={{
+                marginTop: 10,
+                padding: "8px 16px",
+                borderRadius: 50,
+                fontSize: 13,
+                fontWeight: 600,
+                textAlign: "center",
+                background:
+                  sheetStatus === "success"
+                    ? "rgba(34,197,94,0.15)"
+                    : "rgba(229,62,62,0.15)",
+                color: sheetStatus === "success" ? "#22c55e" : DANGER,
+                transition: "all 0.3s",
+              }}
+            >
+              {sheetStatus === "success"
+                ? "✓ Logged to Google Sheet"
+                : "⚠ Could not reach Google Sheet"}
+            </div>
+          )}
         </div>
 
         {/* Divider */}
