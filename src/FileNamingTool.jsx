@@ -18,8 +18,7 @@ const SESSION_ROW = "#2a2a2a";
 const DANGER = "#e53e3e";
 
 const SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbxU_HUxqB7WDlHkNpKthaYJcO4fB7E5GZ0dV-7dQKijhmhRdSxGjMnz_6a9KCP_xcAs/exec";
-
+  "https://script.google.com/macros/s/AKfycbzPxqZxirUK8lPKRawlGS5N0SlSdR-33g0kbAtfY6ptDEGUUwK9VvVhWcdX_XuNA8Io/exec";
 const SHEET_VIEW_URL =
   "https://docs.google.com/spreadsheets/d/1eHnNANtCIoLm160NJXH5_Niy3xe3hcDVOsbgvXtzj1I/edit";
 
