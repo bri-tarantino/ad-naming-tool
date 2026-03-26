@@ -18,7 +18,8 @@ const SESSION_ROW = "#2a2a2a";
 const DANGER = "#e53e3e";
 
 const SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbxU_HUxqB7WDlHkNpKthaYJcO4fB7E5GZ0dV-7dQKijhmhRdSxGjMnz_6a9KCP_xcAs/exec";
+  "https://script.google.com/a/macros/themindcompany.com/s/AKfycbyQ_JhrjfVTAljq_d51FFDh7m0n0zk4oZUibt01dQ0hhHWB1HIQuAnAvtlsgdTaqr0N/exec";
+
 export default function FileNamingTool() {
   const [ticketNum, setTicketNum] = useState("");
   const [assetType, setAssetType] = useState("S");
@@ -497,6 +498,21 @@ export default function FileNamingTool() {
                 {sessionList.length !== 1 ? "s" : ""})
               </h2>
               <div style={{ display: "flex", gap: 8 }}>
+                <a
+                  href={SHEET_VIEW_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    ...pillBtn,
+                    background: "rgba(255,255,255,0.08)",
+                    textDecoration: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  Google Sheet Log ↗
+                </a>
                 <button onClick={copyAll} style={pillBtn}>
                   {copiedAll ? "Copied!" : "Copy All"}
                 </button>
