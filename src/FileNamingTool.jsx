@@ -414,7 +414,7 @@ export default function FileNamingTool() {
                     <div>{vp.label}</div>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 12,
                         fontWeight: 500,
                         color: TEXT_DIM,
                         marginTop: 4,
