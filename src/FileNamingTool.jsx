@@ -339,14 +339,15 @@ export default function FileNamingTool() {
             )}
           </div>
 
-          {/* Static: Size & Platform */}
+          {/* Static: Size only, platform locked to Meta */}
           {assetType === "S" && (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                gridTemplateColumns: "1fr",
                 gap: 12,
                 marginBottom: 16,
+                maxWidth: 300,
               }}
             >
               <div>
@@ -363,20 +364,6 @@ export default function FileNamingTool() {
                         : s === "4x5"
                           ? "4×5"
                           : "9×16"}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label style={label}>Platform</label>
-                <select
-                  value={platform}
-                  onChange={(e) => setPlatform(e.target.value)}
-                  style={pillSelect}
-                >
-                  {PLATFORMS.map((p) => (
-                    <option key={p.value} value={p.value}>
-                      {p.label}
                     </option>
                   ))}
                 </select>
