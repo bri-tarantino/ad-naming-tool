@@ -19,8 +19,17 @@ const DANGER = "#e53e3e";
 
 const SHEET_URL =
   "https://script.google.com/macros/s/AKfycbzPxqZxirUK8lPKRawlGS5N0SlSdR-33g0kbAtfY6ptDEGUUwK9VvVhWcdX_XuNA8Io/exec";
+
 const SHEET_VIEW_URL =
   "https://docs.google.com/spreadsheets/d/1eHnNANtCIoLm160NJXH5_Niy3xe3hcDVOsbgvXtzj1I/edit";
+
+function getTodayMMDDYY() {
+  const d = new Date();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${mm}${dd}${yy}`;
+}
 
 export default function FileNamingTool() {
   const [ticketNum, setTicketNum] = useState("");
@@ -28,20 +37,10 @@ export default function FileNamingTool() {
   const [freeform, setFreeform] = useState("");
   const [fileSize, setFileSize] = useState("1x1");
   const [platform, setPlatform] = useState("NA");
-  const [goLiveDate, setGoLiveDate] = useState("");
   const [copied, setCopied] = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [sessionList, setSessionList] = useState([]);
   const [sheetStatus, setSheetStatus] = useState(null);
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr + "T00:00:00");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const yy = String(d.getFullYear()).slice(-2);
-    return `${mm}${dd}${yy}`;
-  };
 
   const sanitize = (t) =>
     t.replace(/[\s\-]+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
@@ -52,14 +51,14 @@ export default function FileNamingTool() {
       assetType === "S" ? "S" : "V",
       sanitize(freeform),
       size,
-      formatDate(goLiveDate),
+      getTodayMMDDYY(),
       plat,
     ];
     return parts.filter(Boolean).join("_");
   };
 
   const getPreview = () => {
-    if (!ticketNum || !freeform || !goLiveDate) return [];
+    if (!ticketNum || !freeform) return [];
     if (assetType === "V") {
       return [
         { name: buildName("4x5", "NA"), label: "4x5 — Meta", size: "4x5", plat: "NA" },
@@ -78,14 +77,14 @@ export default function FileNamingTool() {
   };
 
   const preview = getPreview();
-  const allFilled = ticketNum && freeform && goLiveDate;
+  const allFilled = ticketNum && freeform;
 
   const sendToSheet = async (entries) => {
     try {
       const ticket = `E${ticketNum.replace(/^E/i, "")}`;
       const type = assetType === "S" ? "Static" : "Video";
       const desc = sanitize(freeform);
-      const date = formatDate(goLiveDate);
+      const date = getTodayMMDDYY();
 
       const rows = entries.map((e) => ({
         fileName: e.name,
@@ -313,61 +312,50 @@ export default function FileNamingTool() {
             )}
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns:
-                assetType === "S" ? "1.2fr 0.8fr 0.8fr" : "1fr",
-              gap: 12,
-              marginBottom: 16,
-            }}
-          >
-            <div>
-              <label style={label}>Go-Live Date</label>
-              <input
-                type="date"
-                value={goLiveDate}
-                onChange={(e) => setGoLiveDate(e.target.value)}
-                style={{ ...pillInput, colorScheme: "dark" }}
-              />
+          {/* Size & Platform for Static only */}
+          {assetType === "S" && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 12,
+                marginBottom: 16,
+              }}
+            >
+              <div>
+                <label style={label}>Size</label>
+                <select
+                  value={fileSize}
+                  onChange={(e) => setFileSize(e.target.value)}
+                  style={pillSelect}
+                >
+                  {FILE_SIZES.map((s) => (
+                    <option key={s} value={s}>
+                      {s === "1x1"
+                        ? "1×1"
+                        : s === "4x5"
+                          ? "4×5"
+                          : "9×16"}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={label}>Platform</label>
+                <select
+                  value={platform}
+                  onChange={(e) => setPlatform(e.target.value)}
+                  style={pillSelect}
+                >
+                  {PLATFORMS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            {assetType === "S" && (
-              <>
-                <div>
-                  <label style={label}>Size</label>
-                  <select
-                    value={fileSize}
-                    onChange={(e) => setFileSize(e.target.value)}
-                    style={pillSelect}
-                  >
-                    {FILE_SIZES.map((s) => (
-                      <option key={s} value={s}>
-                        {s === "1x1"
-                          ? "1×1"
-                          : s === "4x5"
-                            ? "4×5"
-                            : "9×16"}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label style={label}>Platform</label>
-                  <select
-                    value={platform}
-                    onChange={(e) => setPlatform(e.target.value)}
-                    style={pillSelect}
-                  >
-                    {PLATFORMS.map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
-          </div>
+          )}
 
           {assetType === "V" && (
             <div
@@ -385,6 +373,18 @@ export default function FileNamingTool() {
               Meta, 9×16 AppLovin
             </div>
           )}
+
+          {/* Today's date indicator */}
+          <div
+            style={{
+              fontSize: 12,
+              color: TEXT_DIM,
+              marginBottom: 16,
+              paddingLeft: 4,
+            }}
+          >
+            Date auto-set to today: <span style={{ color: TEXT_MID }}>{getTodayMMDDYY()}</span>
+          </div>
 
           {allFilled && (
             <div
