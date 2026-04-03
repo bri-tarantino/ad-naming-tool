@@ -4,9 +4,26 @@ const PLATFORMS = [
   { label: "Meta", value: "NA" },
   { label: "AppLovin", value: "AL" },
   { label: "TikTok", value: "TT" },
+  { label: "YouTube", value: "YT" },
 ];
 
 const FILE_SIZES = ["1x1", "4x5", "9x16"];
+
+const VIDEO_PLATFORM_VARIANTS = {
+  NA: [
+    { size: "4x5", plat: "NA", label: "4x5 — Meta" },
+    { size: "9x16", plat: "NA", label: "9x16 — Meta" },
+    { size: "9x16", plat: "AL", label: "9x16 — AppLovin" },
+  ],
+  TT: [
+    { size: "9x16", plat: "TT", label: "9x16 — TikTok" },
+  ],
+  YT: [
+    { size: "9x16", plat: "YT", label: "9x16 — YouTube" },
+    { size: "4x5", plat: "YT", label: "4x5 — YouTube" },
+    { size: "16x9", plat: "YT", label: "16x9 — YouTube" },
+  ],
+};
 
 const ACCENT = "#29B6F6";
 const BG = "#1a1a1a";
@@ -37,6 +54,7 @@ export default function FileNamingTool() {
   const [freeform, setFreeform] = useState("");
   const [fileSize, setFileSize] = useState("1x1");
   const [platform, setPlatform] = useState("NA");
+  const [videoPlatform, setVideoPlatform] = useState("NA");
   const [copied, setCopied] = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [sessionList, setSessionList] = useState([]);
@@ -60,11 +78,13 @@ export default function FileNamingTool() {
   const getPreview = () => {
     if (!ticketNum || !freeform) return [];
     if (assetType === "V") {
-      return [
-        { name: buildName("4x5", "NA"), label: "4x5 — Meta", size: "4x5", plat: "NA" },
-        { name: buildName("9x16", "NA"), label: "9x16 — Meta", size: "9x16", plat: "NA" },
-        { name: buildName("9x16", "AL"), label: "9x16 — AppLovin", size: "9x16", plat: "AL" },
-      ];
+      const variants = VIDEO_PLATFORM_VARIANTS[videoPlatform] || [];
+      return variants.map((v) => ({
+        name: buildName(v.size, v.plat),
+        label: v.label,
+        size: v.size,
+        plat: v.plat,
+      }));
     }
     return [
       {
@@ -123,6 +143,7 @@ export default function FileNamingTool() {
     setAssetType("S");
     setFileSize("1x1");
     setPlatform("NA");
+    setVideoPlatform("NA");
   };
 
   const remove = (id) =>
@@ -192,6 +213,12 @@ export default function FileNamingTool() {
     color: TEXT,
     transition: "all 0.15s",
   };
+
+  const videoPlatformOptions = [
+    { label: "Meta", value: "NA", desc: "4x5, 9x16, + AppLovin 9x16" },
+    { label: "TikTok", value: "TT", desc: "9x16" },
+    { label: "YouTube", value: "YT", desc: "9x16, 4x5, 16x9" },
+  ];
 
   return (
     <div
@@ -312,7 +339,7 @@ export default function FileNamingTool() {
             )}
           </div>
 
-          {/* Size & Platform for Static only */}
+          {/* Static: Size & Platform */}
           {assetType === "S" && (
             <div
               style={{
@@ -357,20 +384,47 @@ export default function FileNamingTool() {
             </div>
           )}
 
+          {/* Video: Platform selector */}
           {assetType === "V" && (
-            <div
-              style={{
-                background: "rgba(41,182,246,0.08)",
-                border: "1px solid rgba(41,182,246,0.2)",
-                borderRadius: 16,
-                padding: "12px 18px",
-                marginBottom: 16,
-                fontSize: 13,
-                color: ACCENT,
-              }}
-            >
-              Video selected — will auto-generate 3 variants: 4×5 Meta, 9×16
-              Meta, 9×16 AppLovin
+            <div style={{ marginBottom: 16 }}>
+              <label style={label}>Platform</label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {videoPlatformOptions.map((vp) => (
+                  <button
+                    key={vp.value}
+                    onClick={() => setVideoPlatform(vp.value)}
+                    style={{
+                      flex: 1,
+                      padding: "12px 8px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      border: videoPlatform === vp.value
+                        ? `2px solid ${ACCENT}`
+                        : "2px solid rgba(255,255,255,0.1)",
+                      borderRadius: 16,
+                      cursor: "pointer",
+                      background: videoPlatform === vp.value
+                        ? "rgba(41,182,246,0.1)"
+                        : "rgba(255,255,255,0.04)",
+                      color: videoPlatform === vp.value ? ACCENT : TEXT_MID,
+                      transition: "all 0.15s",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div>{vp.label}</div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 500,
+                        color: TEXT_DIM,
+                        marginTop: 4,
+                      }}
+                    >
+                      {vp.desc}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -383,7 +437,8 @@ export default function FileNamingTool() {
               paddingLeft: 4,
             }}
           >
-            Date auto-set to today: <span style={{ color: TEXT_MID }}>{getTodayMMDDYY()}</span>
+            Date auto-set to today:{" "}
+            <span style={{ color: TEXT_MID }}>{getTodayMMDDYY()}</span>
           </div>
 
           {allFilled && (
