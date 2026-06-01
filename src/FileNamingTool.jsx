@@ -271,7 +271,7 @@ export default function FileNamingTool() {
               gap: 10,
             }}
           >
-            <span>🌱</span> Growth | File Naming Tool
+            <span>🌱</span> Growth | File Naming Tool v1.2
           </h1>
           <p style={{ fontSize: 14, color: TEXT_DIM, margin: "6px 0 0" }}>
             Format: Ticket#_AssetType_Freeform_Size_Date_Platform
