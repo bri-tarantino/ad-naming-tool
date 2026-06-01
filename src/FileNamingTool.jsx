@@ -1,5 +1,12 @@
 import { useState } from "react";
 
+const APPS = [
+  { label: "Elevate", prefix: "E", sheet: "Elevate" },
+  { label: "Balance", prefix: "B", sheet: "Balance" },
+  { label: "Spark", prefix: "S", sheet: "Spark" },
+  { label: "TMC", prefix: "T", sheet: "TMC" },
+];
+
 const PLATFORMS = [
   { label: "Meta", value: "NA" },
   { label: "AppLovin", value: "AL" },
@@ -15,9 +22,7 @@ const VIDEO_PLATFORM_VARIANTS = {
     { size: "9x16", plat: "NA", label: "9x16 — Meta" },
     { size: "9x16", plat: "AL", label: "9x16 — AppLovin" },
   ],
-  TT: [
-    { size: "9x16", plat: "TT", label: "9x16 — TikTok" },
-  ],
+  TT: [{ size: "9x16", plat: "TT", label: "9x16 — TikTok" }],
   YT: [
     { size: "9x16", plat: "YT", label: "9x16 — YouTube" },
     { size: "4x5", plat: "YT", label: "4x5 — YouTube" },
@@ -35,7 +40,7 @@ const SESSION_ROW = "#2a2a2a";
 const DANGER = "#e53e3e";
 
 const SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbzPxqZxirUK8lPKRawlGS5N0SlSdR-33g0kbAtfY6ptDEGUUwK9VvVhWcdX_XuNA8Io/exec";
+  "https://script.google.com/macros/s/AKfycbzT_2s3YQaEVySi4KGMsUmp0n9OrUEcD0YEOpt59nbyVrKTfypISmI4aZG1yTgD8wJn/exec";
 
 const SHEET_VIEW_URL =
   "https://docs.google.com/spreadsheets/d/1eHnNANtCIoLm160NJXH5_Niy3xe3hcDVOsbgvXtzj1I/edit";
@@ -49,6 +54,7 @@ function getTodayMMDDYY() {
 }
 
 export default function FileNamingTool() {
+  const [activeApp, setActiveApp] = useState(0);
   const [ticketNum, setTicketNum] = useState("");
   const [assetType, setAssetType] = useState("S");
   const [freeform, setFreeform] = useState("");
@@ -57,15 +63,25 @@ export default function FileNamingTool() {
   const [videoPlatform, setVideoPlatform] = useState("NA");
   const [copied, setCopied] = useState(null);
   const [copiedAll, setCopiedAll] = useState(false);
-  const [sessionList, setSessionList] = useState([]);
+  const [sessionLists, setSessionLists] = useState({
+    Elevate: [],
+    Balance: [],
+    Spark: [],
+    TMC: [],
+  });
   const [sheetStatus, setSheetStatus] = useState(null);
+
+  const app = APPS[activeApp];
+  const sessionList = sessionLists[app.sheet];
 
   const sanitize = (t) =>
     t.replace(/[\s\-]+/g, "_").replace(/[^a-zA-Z0-9_]/g, "");
 
   const buildName = (size, plat) => {
     const parts = [
-      ticketNum ? `E${ticketNum.replace(/^E/i, "")}` : "",
+      ticketNum
+        ? `${app.prefix}${ticketNum.replace(/^[A-Za-z]/i, "")}`
+        : "",
       assetType === "S" ? "S" : "V",
       sanitize(freeform),
       size,
@@ -101,26 +117,29 @@ export default function FileNamingTool() {
 
   const sendToSheet = async (entries) => {
     try {
-      const ticket = `E${ticketNum.replace(/^E/i, "")}`;
+      const ticket = `${app.prefix}${ticketNum.replace(/^[A-Za-z]/i, "")}`;
       const type = assetType === "S" ? "Static" : "Video";
       const desc = sanitize(freeform);
       const date = getTodayMMDDYY();
 
-      const rows = entries.map((e) => ({
-        fileName: e.name,
-        ticket: ticket,
-        assetType: type,
-        description: desc,
-        size: e.size,
-        date: date,
-        platform: e.plat,
-      }));
+      const payload = {
+        sheetName: app.sheet,
+        entries: entries.map((e) => ({
+          fileName: e.name,
+          ticket: ticket,
+          assetType: type,
+          description: desc,
+          size: e.size,
+          date: date,
+          platform: e.plat,
+        })),
+      };
 
       await fetch(SHEET_URL, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(rows),
+        body: JSON.stringify(payload),
       });
 
       setSheetStatus("success");
@@ -138,7 +157,10 @@ export default function FileNamingTool() {
       id: Date.now() + Math.random(),
     }));
     sendToSheet(currentEntries);
-    setSessionList((prev) => [...currentEntries, ...prev]);
+    setSessionLists((prev) => ({
+      ...prev,
+      [app.sheet]: [...currentEntries, ...prev[app.sheet]],
+    }));
     setFreeform("");
     setAssetType("S");
     setFileSize("1x1");
@@ -147,8 +169,13 @@ export default function FileNamingTool() {
   };
 
   const remove = (id) =>
-    setSessionList((prev) => prev.filter((i) => i.id !== id));
-  const clearAll = () => setSessionList([]);
+    setSessionLists((prev) => ({
+      ...prev,
+      [app.sheet]: prev[app.sheet].filter((i) => i.id !== id),
+    }));
+
+  const clearAll = () =>
+    setSessionLists((prev) => ({ ...prev, [app.sheet]: [] }));
 
   const copy = (text, key) => {
     navigator.clipboard.writeText(text);
@@ -233,7 +260,7 @@ export default function FileNamingTool() {
     >
       <div style={{ maxWidth: 640, margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: 32 }}>
+        <div style={{ marginBottom: 24 }}>
           <h1
             style={{
               fontSize: 28,
@@ -251,6 +278,49 @@ export default function FileNamingTool() {
           </p>
         </div>
 
+        {/* App Tabs */}
+        <div
+          style={{
+            display: "flex",
+            gap: 4,
+            marginBottom: 24,
+            background: "rgba(255,255,255,0.04)",
+            borderRadius: 50,
+            padding: 4,
+          }}
+        >
+          {APPS.map((a, i) => (
+            <button
+              key={a.label}
+              onClick={() => {
+                setActiveApp(i);
+                setTicketNum("");
+                setFreeform("");
+                setAssetType("S");
+                setFileSize("1x1");
+                setPlatform("NA");
+                setVideoPlatform("NA");
+              }}
+              style={{
+                flex: 1,
+                padding: "10px 0",
+                fontSize: 14,
+                fontWeight: 700,
+                border: "none",
+                borderRadius: 50,
+                cursor: "pointer",
+                background:
+                  activeApp === i ? ACCENT : "transparent",
+                color: activeApp === i ? "#fff" : TEXT_DIM,
+                transition: "all 0.15s",
+                letterSpacing: "0.02em",
+              }}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+
         {/* Form */}
         <div style={{ marginBottom: 24 }}>
           <div
@@ -265,9 +335,9 @@ export default function FileNamingTool() {
               <label style={label}>Ticket #</label>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <span
-                  style={{ fontSize: 16, fontWeight: 700, color: TEXT_MID }}
+                  style={{ fontSize: 16, fontWeight: 700, color: ACCENT }}
                 >
-                  E
+                  {app.prefix}
                 </span>
                 <input
                   type="text"
@@ -385,15 +455,18 @@ export default function FileNamingTool() {
                       padding: "12px 8px",
                       fontSize: 13,
                       fontWeight: 700,
-                      border: videoPlatform === vp.value
-                        ? `2px solid ${ACCENT}`
-                        : "2px solid rgba(255,255,255,0.1)",
+                      border:
+                        videoPlatform === vp.value
+                          ? `2px solid ${ACCENT}`
+                          : "2px solid rgba(255,255,255,0.1)",
                       borderRadius: 16,
                       cursor: "pointer",
-                      background: videoPlatform === vp.value
-                        ? "rgba(41,182,246,0.1)"
-                        : "rgba(255,255,255,0.04)",
-                      color: videoPlatform === vp.value ? ACCENT : TEXT_MID,
+                      background:
+                        videoPlatform === vp.value
+                          ? "rgba(41,182,246,0.1)"
+                          : "rgba(255,255,255,0.04)",
+                      color:
+                        videoPlatform === vp.value ? ACCENT : TEXT_MID,
                       transition: "all 0.15s",
                       textAlign: "center",
                     }}
@@ -415,7 +488,6 @@ export default function FileNamingTool() {
             </div>
           )}
 
-          {/* Today's date indicator */}
           <div
             style={{
               fontSize: 12,
@@ -510,7 +582,7 @@ export default function FileNamingTool() {
               }}
             >
               {sheetStatus === "success"
-                ? "✓ Logged to Google Sheet"
+                ? `✓ Logged to ${app.label} sheet`
                 : "⚠ Could not reach Google Sheet"}
             </div>
           )}
@@ -537,7 +609,7 @@ export default function FileNamingTool() {
               }}
             >
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>
-                Session List ({sessionList.length} file
+                {app.label} — Session List ({sessionList.length} file
                 {sessionList.length !== 1 ? "s" : ""})
               </h2>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -575,7 +647,9 @@ export default function FileNamingTool() {
               </div>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: 8 }}
+            >
               {sessionList.map((item) => (
                 <div
                   key={item.id}
