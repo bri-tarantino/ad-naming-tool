@@ -43,7 +43,7 @@ const SHEET_URL =
   "PASTE_NEW_APPS_SCRIPT_URL_HERE";
 
 const SHEET_VIEW_URL =
-  "https://docs.google.com/spreadsheets/d/1eHnNANtCIoLm160NJXH5_Niy3xe3hcDVOsbgvXtzj1I/edit";
+  "https://script.google.com/macros/s/AKfycbzT_2s3YQaEVySi4KGMsUmp0n9OrUEcD0YEOpt59nbyVrKTfypISmI4aZG1yTgD8wJn/exec";
 
 function getTodayMMDDYY() {
   const d = new Date();
