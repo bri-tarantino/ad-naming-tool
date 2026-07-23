@@ -1,10 +1,10 @@
 import { useState } from "react";
 
 const APPS = [
-  { label: "Elevate", prefix: "E", sheet: "Elevate" },
-  { label: "Balance", prefix: "B", sheet: "Balance" },
-  { label: "Spark", prefix: "S", sheet: "Spark" },
-  { label: "TMC", prefix: "T", sheet: "TMC" },
+  { label: "Elevate", prefix: "ELE", sheet: "Elevate" },
+  { label: "Balance", prefix: "BAL", sheet: "Balance" },
+  { label: "Spark", prefix: "SPA", sheet: "Spark" },
+  { label: "TMC", prefix: "TMC", sheet: "TMC" },
 ];
 
 const PLATFORMS = [
@@ -40,7 +40,7 @@ const SESSION_ROW = "#2a2a2a";
 const DANGER = "#e53e3e";
 
 const SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbzT_2s3YQaEVySi4KGMsUmp0n9OrUEcD0YEOpt59nbyVrKTfypISmI4aZG1yTgD8wJn/exec";
+  "PASTE_NEW_APPS_SCRIPT_URL_HERE";
 
 const SHEET_VIEW_URL =
   "https://docs.google.com/spreadsheets/d/1eHnNANtCIoLm160NJXH5_Niy3xe3hcDVOsbgvXtzj1I/edit";
@@ -80,7 +80,7 @@ export default function FileNamingTool() {
   const buildName = (size, plat) => {
     const parts = [
       ticketNum
-        ? `${app.prefix}${ticketNum.replace(/^[A-Za-z]/i, "")}`
+        ? `${app.prefix}_${ticketNum.replace(/^[A-Za-z]/i, "")}`
         : "",
       assetType === "S" ? "S" : "V",
       sanitize(freeform),
@@ -117,7 +117,7 @@ export default function FileNamingTool() {
 
   const sendToSheet = async (entries) => {
     try {
-      const ticket = `${app.prefix}${ticketNum.replace(/^[A-Za-z]/i, "")}`;
+      const ticket = `${app.prefix}_${ticketNum.replace(/^[A-Za-z]/i, "")}`;
       const type = assetType === "S" ? "Static" : "Video";
       const desc = sanitize(freeform);
       const date = getTodayMMDDYY();
