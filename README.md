@@ -2,7 +2,7 @@
 
 A lightweight internal web tool for generating standardized ad file names across The Mind Company's product suite (Elevate, Balance, Spark, TMC). Built to replace a manual spreadsheet-based naming process with an automated, team-friendly interface.
 
-**Live URL:** [file-naming-tool.vercel.app](https://file-naming-tool.vercel.app) *(update with your actual Vercel URL)*
+**Live URL:** [tmc-file-naming-tool-five.vercel.app](https://tmc-file-naming-tool-five.vercel.app)
 
 ---
 
